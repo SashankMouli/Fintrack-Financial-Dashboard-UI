@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinTrack - Finance Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <nav class="navbar">
+        <div class="brand">
+          <span class="brand-mark" role="img" aria-label="Finance analytics">
+            <svg class="brand-mark-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" fill-opacity="0.45" d="M4 15h4v5H4z" />
+              <path fill="currentColor" fill-opacity="0.75" d="M10 11h4v9h-4z" />
+              <path fill="currentColor" d="M16 6h4v14h-4z" />
+            </svg>
+          </span>
+          <div class="brand-copy">
+            <h1>FinTrack</h1>
+            <p>Finance Intelligence Dashboard</p>
+            <span class="brand-chip">Premium Workspace</span>
+          </div>
+        </div>
+        <div class="navbar-controls premium-controls">
+          <div class="role-control-group">
+            <span class="control-label">Local Date & Time</span>
+            <div id="dateTimeDisplay" class="date-time-chip">--</div>
+          </div>
+
+          <div class="role-control-group">
+            <span class="control-label">Role</span>
+            <div class="segmented-control" id="roleSwitcher" role="group" aria-label="Access role">
+              <button type="button" class="seg-btn role-btn" data-role="viewer" aria-pressed="false">
+                Viewer
+              </button>
+              <button type="button" class="seg-btn role-btn" data-role="admin" aria-pressed="false">
+                Admin
+              </button>
+            </div>
+          </div>
+
+          <div class="role-control-group">
+            <span class="control-label">Theme</span>
+            <div class="segmented-control theme-toggle" id="themeSwitcher">
+              <button type="button" class="seg-btn theme-btn" data-theme-mode="dark">Dark</button>
+              <button type="button" class="seg-btn theme-btn" data-theme-mode="light">Light</button>
+              <button type="button" class="seg-btn theme-btn" data-theme-mode="auto">Auto</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <section class="hero-grid">
+        <article class="panel hero-message">
+          <p class="eyebrow">Portfolio Health</p>
+          <h2 id="heroNetWorth">₹0.00</h2>
+          <p class="hero-subtext">
+            Net worth snapshot updates automatically based on income and expense activity.
+          </p>
+        </article>
+        <article class="panel quick-actions">
+          <p class="eyebrow">Workflow</p>
+          <ul>
+            <li>Track income and expenses in real time</li>
+            <li>Switch role to simulate access control</li>
+            <li>Toggle theme between Dark, Light, and Auto</li>
+          </ul>
+        </article>
+      </section>
+
+      <main class="dashboard-content">
+        <section class="summary-grid">
+          <article class="summary-card balance">
+            <div class="summary-head">
+              <span class="summary-icon">💼</span>
+              <h2>Total Balance</h2>
+            </div>
+            <p id="totalBalance" class="summary-value">₹0.00</p>
+            <small class="summary-subtext">Available across all accounts</small>
+          </article>
+
+          <article class="summary-card income">
+            <div class="summary-head">
+              <span class="summary-icon">📈</span>
+              <h2>Total Income</h2>
+            </div>
+            <p id="totalIncome" class="summary-value">₹0.00</p>
+            <small class="summary-subtext">Accumulated inflows</small>
+          </article>
+
+          <article class="summary-card expenses">
+            <div class="summary-head">
+              <span class="summary-icon">📉</span>
+              <h2>Total Expenses</h2>
+            </div>
+            <p id="totalExpenses" class="summary-value">₹0.00</p>
+            <small class="summary-subtext">Tracked outflows</small>
+          </article>
+        </section>
+
+        <section class="charts-grid">
+          <article class="panel chart-panel">
+            <div class="panel-header">
+              <h3>Balance Trend</h3>
+              <p>Running balance built from your transactions, oldest to newest</p>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-header">
+              <h3>Spending Breakdown</h3>
+              <p>Expense split by category</p>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="pieChart"></canvas>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel transactions-panel">
+          <div class="panel-header transactions-header">
+            <div>
+              <h3>Transactions</h3>
+              <p>Search, filter, and manage financial activity</p>
+              <span id="accessModeBadge" class="access-badge" aria-live="polite">View only</span>
+            </div>
+            <button id="addTransactionBtn" type="button" class="btn btn-primary">+ Add Transaction</button>
+          </div>
+
+          <div class="table-controls">
+            <input
+              id="searchInput"
+              type="text"
+              class="control-input"
+              placeholder="Search by category or amount"
+            />
+            <select id="typeFilter" class="control-select">
+              <option value="all">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            <select id="sortBy" class="control-select">
+              <option value="date_desc">Sort: Newest Date</option>
+              <option value="date_asc">Sort: Oldest Date</option>
+              <option value="amount_desc">Sort: Highest Amount</option>
+              <option value="amount_asc">Sort: Lowest Amount</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table class="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th id="actionsHeader">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsBody"></tbody>
+            </table>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <p>No transactions found</p>
+          </div>
+        </section>
+
+        <section class="insights-wrap">
+          <header class="insights-header">
+            <div>
+              <h3 class="insights-title">Insights</h3>
+              <p class="insights-subtitle">Patterns distilled from your ledger</p>
+            </div>
+          </header>
+          <div class="insights-grid">
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">🏷️</span>
+              <h4>Top Spending Category</h4>
+              <p id="topCategory" class="insight-value">-</p>
+              <small>Category with highest expense</small>
+            </article>
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">📅</span>
+              <h4>Monthly Trend</h4>
+              <p id="monthlyTrend" class="insight-value">-</p>
+              <small>Income vs expense movement</small>
+            </article>
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">🎯</span>
+              <h4>Total Savings</h4>
+              <p id="totalSavings" class="insight-value">-</p>
+              <small>Income minus expenses</small>
+            </article>
+            <article class="panel insight-card insight-card-accent">
+              <span class="insight-emoji" aria-hidden="true">💎</span>
+              <h4>Savings rate</h4>
+              <p id="insightSavingsRate" class="insight-value">—</p>
+              <div class="insight-meter"><span id="savingsRateFill"></span></div>
+              <small id="insightSavingsHint">Share of income kept after spending</small>
+            </article>
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">🔥</span>
+              <h4>Daily spend pace</h4>
+              <p id="insightDailyPace" class="insight-value">—</p>
+              <small id="insightDailyHint">Average expense per day across your timeline</small>
+            </article>
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">⚡</span>
+              <h4>Largest single expense</h4>
+              <p id="insightLargestExpense" class="insight-value">—</p>
+              <small id="insightLargestHint">Your biggest one-off outflow</small>
+            </article>
+            <article class="panel insight-card">
+              <span class="insight-emoji" aria-hidden="true">🌊</span>
+              <h4>Money velocity</h4>
+              <p id="insightVelocity" class="insight-value">—</p>
+              <small id="insightVelocityHint">How often you record activity</small>
+            </article>
+            <article class="panel insight-card insight-card-glow">
+              <span class="insight-emoji" aria-hidden="true">✨</span>
+              <h4>Cashflow health</h4>
+              <p id="insightHealthLabel" class="insight-value">—</p>
+              <small id="insightHealthHint">Quick read on income vs expense balance</small>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="transactionModal" class="modal">
+      <form id="transactionForm" class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Add Transaction</h3>
+          <button type="button" id="closeModalBtn" class="icon-btn" aria-label="Close">
+            ✕
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Date
+            <input id="txDate" type="date" required />
+          </label>
+          <label>
+            Amount
+            <input id="txAmount" type="number" min="0.01" step="0.01" required />
+          </label>
+          <label>
+            Category
+            <input id="txCategory" type="text" maxlength="32" required />
+          </label>
+          <label>
+            Type
+            <select id="txType" required>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBtn" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Transaction</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./data.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
